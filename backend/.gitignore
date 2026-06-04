@@ -1,0 +1,8 @@
+venv/
+.env
+__pycache__/
+*.pyc
+venv
+/venv
+tg12/
+tg12

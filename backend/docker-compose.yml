@@ -1,0 +1,37 @@
+
+services:
+  pg_database:
+    image: postgres:15-alpine
+    container_name: pg_db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: always
+
+  
+  bot:
+    build: .
+    container_name: bot11
+    entrypoint: ["/bin/sh", "-c", "sleep 3 && python app/main.py"]
+    environment:
+      PYTHONPATH: .
+      BOT_TOKEN: ${BOT_TOKEN}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+    volumes:
+      - .:/app
+    depends_on:
+      - pg_database
+    restart: always
+
+
+volumes:
+  pg_data:

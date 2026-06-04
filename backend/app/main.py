@@ -1,0 +1,24 @@
+import asyncio
+from aiogram import Bot, Dispatcher
+
+from config import settings
+
+from handler import get_handlers_router
+
+from app.database import engine, Base
+
+async def main():
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    
+    bot = Bot(token=settings.BOT_TOKEN)
+    dp = Dispatcher()
+    
+    dp.include_router(get_handlers_router())
+
+    await dp.start_polling(bot, drop_pending_updates=True)
+
+
+if __name__=='__main__':
+    asyncio.run(main())
