@@ -49,6 +49,32 @@ async def capture_time(callback: CallbackQuery, callback_data: CalendarTimeCallb
     
     full_datetime = f"{callback_data.date_str} {callback_data.time_str}"
     timestamp = datetime.strptime(full_datetime, "%Y-%m-%d %H-%M")
+    
+    
+    is_busy = await ClassesDao.check_slot_busy(timestamp=timestamp)
+    
+    if is_busy:
+        await callback.answer(
+            text="⚠️ К сожалению это время только что забронировал другой ученик ⚠️",
+            show_alert=True
+        )
+        target_date = timestamp.date()
+        busy_slots = await ClassesDao.get_busy_slots_for_day(target_date)
+        
+        
+        updated_kb = get_day_time(
+            chosen_date=callback_data.date_str, 
+            busy_slots=busy_slots, 
+            current_user_id=callback.from_user.id
+        )
+        
+        
+        await callback.message.edit_text(
+            text=f"Вы опоздали! Кто-то занял это время.\nВыберите другое время на: {target_date}",
+            reply_markup=updated_kb
+        )
+        return
+    
     await ClassesDao.add(
         lesson_timestamp=timestamp,
         reserved=True,

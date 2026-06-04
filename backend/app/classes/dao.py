@@ -30,3 +30,15 @@ class ClassesDao(BaseDao):
                 }
                 for lesson in lessons
             ]
+            
+    @classmethod
+    async def check_slot_busy(cls, timestamp: datetime) -> bool:
+        async with async_session() as session:
+            query = (
+                select(Classes).where(
+                    Classes.lesson_timestamp==timestamp,
+                    Classes.reserved==True
+                )
+            )
+            result = await session.execute(query)
+            return result.scalar_one_or_none() is not None

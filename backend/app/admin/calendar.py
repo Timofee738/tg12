@@ -43,7 +43,7 @@ def get_day_time(chosen_date: str, busy_slots: list[str], current_user_id: int):
             if slot_owner == current_user_id:
                 builder.button(
                     text=f"👤 Ваша запись ({slot})", 
-                    callback_data="ignore_my_own_slot" # Пустышка или можно сделать кнопку "Отменить запись"
+                    callback_data="ignore_my_own_slot" ## Надо сделать отмену
                 )
             else:
                 builder.button(
