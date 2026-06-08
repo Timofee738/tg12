@@ -7,3 +7,6 @@ pydantic-settings
 aiogram
 
 sqlalchemy
+
+alembic
+greenlet

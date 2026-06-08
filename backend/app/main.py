@@ -5,12 +5,8 @@ from config import settings
 
 from handler import get_handlers_router
 
-from app.database import engine, Base
 
 async def main():
-
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
     
     bot = Bot(token=settings.BOT_TOKEN)
     dp = Dispatcher()

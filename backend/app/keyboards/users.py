@@ -2,6 +2,10 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from aiogram.filters.callback_data import CallbackData
 
+from datetime import datetime
+
+
+
 back_builder = InlineKeyboardBuilder()
 back_builder.button(
     text="🔙 Меню выбора",
@@ -21,3 +25,8 @@ change_builder.button(
     text="Отменить",
     callback_data=ChangeMethodCallback(method=False)
 )
+
+class AdminCancelCallback(CallbackData, prefix="admin_cancel"):
+    user_id: int
+    timestamp: datetime
+

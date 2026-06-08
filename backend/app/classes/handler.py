@@ -1,12 +1,15 @@
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 from aiogram.types import CallbackQuery
+
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from app.classes.dao import ClassesDao
+from app.users.dao import UsersDao
 from app.admin.calendar import CalendarDayCallback, CalendarTimeCallback, get_day_time, get_calendar
-from app.keyboards.users import back_builder
+from app.keyboards.users import back_builder, AdminCancelCallback
 
 from datetime import datetime
+from app.config import settings
 
 classes_router = Router()
 
@@ -44,7 +47,7 @@ async def back_to_days(callback: CallbackQuery):
 
   
 @classes_router.callback_query(CalendarTimeCallback.filter())
-async def capture_time(callback: CallbackQuery, callback_data: CalendarTimeCallback):
+async def capture_time(callback: CallbackQuery, callback_data: CalendarTimeCallback, bot: Bot):
     await callback.answer()
     
     full_datetime = f"{callback_data.date_str} {callback_data.time_str}"
@@ -83,4 +86,31 @@ async def capture_time(callback: CallbackQuery, callback_data: CalendarTimeCallb
     await callback.message.edit_text(
         text=f"✅ Урок запланирован\n\nДень: {callback_data.date_str}\nВремя: {callback_data.time_str}",
         reply_markup=back_builder.as_markup()
+    )
+    
+    student = await UsersDao.find_one_or_none(tg_id=callback.from_user.id)
+    
+    
+    cancel_builder = InlineKeyboardBuilder()
+    cancel_builder.button(
+        text="➖ Отменить",
+        callback_data=AdminCancelCallback(timestamp=timestamp, user_id=callback.from_user.id)
+    )
+    
+    
+    await bot.send_message(
+        chat_id=settings.ADMIN,
+        text=f"Новое запланированое событие:\n\n⏰ Время: {timestamp}\n👤 Ученик: {student.username}",
+        reply_markup=cancel_builder.as_markup()
+    )
+@classes_router.callback_query(AdminCancelCallback.filter())
+async def cancel_class(callback: CallbackQuery, callback_data: AdminCancelCallback, bot: Bot):
+    await callback.answer()
+    await ClassesDao.delete(lesson_timestamp=callback_data.timestamp, user_id=callback_data.user_id)
+    await callback.message.edit_text(
+        text=f"Успешно отменено событие:\n\nВремя: {callback_data.timestamp}\nУченик:{callback_data.username}"
+    )
+    await bot.send_message(
+        chat_id=callback_data.user_id,
+        text=f"К сожалению отменено событие:\n\nВремя: {callback_data.timestamp}"
     )
